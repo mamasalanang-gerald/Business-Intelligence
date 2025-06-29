@@ -72,8 +72,14 @@ function updateDashboard(data) {
 }
 
 function renderChart(canvasId, label, type, data, labels) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
     if (charts[canvasId]) charts[canvasId].destroy();
+    // Detect dark mode
+    const isDark = document.body.classList.contains('dark-mode');
+    const textColor = isDark ? '#fff' : '#222';
+    // Set canvas background
+    canvas.style.background = isDark ? '#232b3b' : '#fff';
     charts[canvasId] = new Chart(ctx, {
         type: type,
         data: {
@@ -92,10 +98,28 @@ function renderChart(canvasId, label, type, data, labels) {
         options: {
             responsive: true,
             plugins: {
-                legend: { display: type !== 'bar' }
+                legend: {
+                    display: type !== 'bar',
+                    labels: { color: textColor }
+                },
+                tooltip: {
+                    bodyColor: textColor,
+                    titleColor: textColor,
+                    backgroundColor: isDark ? '#232b3b' : '#fff',
+                    borderColor: isDark ? '#fff' : '#222',
+                    borderWidth: 1
+                }
             },
             scales: (type === 'bar' || type === 'line') ? {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: textColor },
+                    grid: { color: isDark ? '#444' : '#e0e0e0' }
+                },
+                x: {
+                    ticks: { color: textColor },
+                    grid: { color: isDark ? '#444' : '#e0e0e0' }
+                }
             } : {}
         }
     });
@@ -165,23 +189,29 @@ statCards.forEach(card => {
     });
 });
 
-// Widget Refresh Buttons
-const refreshBtns = document.querySelectorAll('.refresh-btn');
-refreshBtns.forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        // For now, just re-fetch all data and update the dashboard
-        // In a real app, you could fetch only the relevant widget's data
-        fetchDataAndUpdate();
-        // Highlight the widget
-        const widget = btn.closest('.widget');
-        if (widget) {
-            widget.classList.add('active');
-            setTimeout(() => widget.classList.remove('active'), 1000);
-        }
-    });
+// Global refresh button
+document.getElementById('refresh-all').addEventListener('click', function() {
+    fetchDataAndUpdate();
 });
 
-// Initial fetch and polling
-fetchDataAndUpdate();
-setInterval(fetchDataAndUpdate, 5000); 
+// Add this function to re-render all charts on theme change
+function updateAllChartsTheme() {
+    Object.keys(charts).forEach(id => {
+        // Get the chart's current data and type
+        const chart = charts[id];
+        const type = chart.config.type;
+        const data = chart.data;
+        const options = chart.options;
+        // Destroy and re-render with the same data
+        chart.destroy();
+        renderChart(id, data.datasets[0].label, type, data.datasets[0].data, data.labels);
+    });
+}
+
+// In the theme toggle script (at the end of the file):
+const themeToggle = document.getElementById('theme-toggle');
+themeToggle.onclick = function() {
+    document.body.classList.toggle('dark-mode');
+    themeToggle.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    updateAllChartsTheme();
+}; 
