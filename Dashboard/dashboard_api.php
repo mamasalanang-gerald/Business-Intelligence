@@ -118,27 +118,72 @@ function getProductsByLine($pdo) {
     return getProductLines($pdo);
 }
 
+function getTop5Customers($pdo) {
+    $stmt = $pdo->query("SELECT customerName, creditLimit FROM customers ORDER BY creditLimit DESC LIMIT 5");
+    return $stmt->fetchAll();
+}
+
+function getCustomerWithMostOrders($pdo) {
+    $stmt = $pdo->query("SELECT c.customerName, COUNT(o.orderNumber) as orderCount FROM customers c JOIN orders o ON c.customerNumber = o.customerNumber GROUP BY c.customerNumber ORDER BY orderCount DESC LIMIT 1");
+    return $stmt->fetch();
+}
+
+function getLargestPayment($pdo) {
+    $stmt = $pdo->query("SELECT amount, customerNumber FROM payments ORDER BY amount DESC LIMIT 1");
+    $row = $stmt->fetch();
+    if ($row) {
+        $customerStmt = $pdo->prepare("SELECT customerName FROM customers WHERE customerNumber = ?");
+        $customerStmt->execute([$row['customerNumber']]);
+        $customer = $customerStmt->fetch();
+        $row['customerName'] = $customer ? $customer['customerName'] : '';
+    }
+    return $row;
+}
+
+function getMostCommonJobTitle($pdo) {
+    $stmt = $pdo->query("SELECT jobTitle, COUNT(*) as count FROM employees GROUP BY jobTitle ORDER BY count DESC LIMIT 1");
+    return $stmt->fetch();
+}
+
+function getCountryWithMostOffices($pdo) {
+    $stmt = $pdo->query("SELECT country, COUNT(*) as count FROM offices GROUP BY country ORDER BY count DESC LIMIT 1");
+    return $stmt->fetch();
+}
+
+function getRecentOrders($pdo) {
+    $stmt = $pdo->query("
+        SELECT o.orderNumber, o.orderDate, o.status, c.customerName
+        FROM orders o
+        JOIN customers c ON o.customerNumber = c.customerNumber
+        ORDER BY o.orderDate DESC
+        LIMIT 5
+    ");
+    return $stmt->fetchAll();
+}
+
 try {
     $data = [];
     $shuffle = isset($_GET['shuffle']) ? $_GET['shuffle'] : null;
     // Customers
     $data['customers'] = [
         'count' => getCount($pdo, 'customers'),
-        'funFact' => 'Random customer: ' . getRandomRow($pdo, 'customers', 'customerName'),
+        'funFact' => 'Top customer by credit limit: ' . getTopCustomer($pdo)['customerName'],
         'topCustomer' => getTopCustomer($pdo),
+        'top5Customers' => getTop5Customers($pdo),
+        'mostOrders' => getCustomerWithMostOrders($pdo),
         'byCountry' => getCustomersByCountry($pdo)
     ];
     // Employees
     $data['employees'] = [
         'count' => getCount($pdo, 'employees'),
-        'funFact' => 'Random employee: ' . getRandomRow($pdo, 'employees', 'firstName'),
+        'funFact' => 'Most common job title: ' . getMostCommonJobTitle($pdo)['jobTitle'],
         'topEmployee' => getTopEmployee($pdo),
         'byTitle' => getEmployeesByTitle($pdo)
     ];
     // Offices
     $data['offices'] = [
         'count' => getCount($pdo, 'offices'),
-        'funFact' => 'Random office: ' . getRandomRow($pdo, 'offices', 'city'),
+        'funFact' => 'Country with most offices: ' . getCountryWithMostOffices($pdo)['country'],
         'locations' => getOfficeLocations($pdo),
         'byCountry' => getOfficesByCountry($pdo)
     ];
@@ -154,12 +199,13 @@ try {
         'count' => getCount($pdo, 'orders'),
         'funFact' => 'Random order: ' . getRandomRow($pdo, 'orders', 'orderNumber'),
         'totalSales' => getCount($pdo, 'orders'),
-        'byMonth' => getOrdersByMonth($pdo)
+        'byMonth' => getOrdersByMonth($pdo),
+        'recent' => getRecentOrders($pdo)
     ];
     // Payments
     $data['payments'] = [
         'count' => getCount($pdo, 'payments'),
-        'funFact' => 'Random check: ' . getRandomRow($pdo, 'payments', 'checkNumber'),
+        'funFact' => 'Largest payment received: ₱' . number_format(getLargestPayment($pdo)['amount'], 2) . ' from ' . getLargestPayment($pdo)['customerName'],
         'totalAmount' => getSum($pdo, 'payments', 'amount'),
         'byMonth' => getPaymentsByMonth($pdo)
     ];
