@@ -97,9 +97,11 @@ function renderChart(canvasId, label, type, data, labels) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: (type === 'pie' || type === 'doughnut') ? 1.5 : undefined,
             plugins: {
                 legend: {
-                    display: type !== 'bar',
+                    display: type !== 'pie' && type !== 'doughnut' && type !== 'bar',
                     labels: { color: textColor }
                 },
                 tooltip: {
