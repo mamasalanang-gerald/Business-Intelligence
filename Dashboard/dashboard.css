@@ -142,7 +142,6 @@ body {
     background: #fff;
     border-radius: 1.2rem;
     box-shadow: 0 4px 24px rgba(44,62,80,0.10);
-    margin-bottom: 1.5rem;
     padding-bottom: 0.5rem;
     transition: box-shadow 0.2s, border 0.2s, background 0.2s;
     border-left: 8px solid transparent;
@@ -158,7 +157,7 @@ body {
     max-width: 420px;
     min-width: 320px;
     width: 100%;
-    margin: 0 auto 0 auto;
+    margin: 0px 0px 10px 0px;
 }
 .widget:hover, .widget:focus-within {
     box-shadow: 0 16px 40px rgba(44,62,80,0.18);
@@ -244,7 +243,6 @@ body {
 .recent-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 1.08rem;
     background: #fff;
     border-radius: 0.75rem;
     overflow: hidden;

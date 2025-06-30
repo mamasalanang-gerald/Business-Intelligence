@@ -71,6 +71,7 @@
             <label><input type="checkbox" checked data-widget="payments"> Payments</label>
             <label><input type="checkbox" checked data-widget="productlines"> Product Lines</label>
             <label><input type="checkbox" checked data-widget="products"> Products</label>
+            <label><input type="checkbox" checked data-widget="recent-orders"> Recent Orders</label>
         </section>
         <!-- Dashboard Widgets -->
         <main class="dashboard-widgets">
@@ -199,13 +200,5 @@
         </main>
     </div>
     <script src="dashboard.js"></script>
-    <script>
-    // Theme toggle
-    const themeToggle = document.getElementById('theme-toggle');
-    themeToggle.onclick = function() {
-        document.body.classList.toggle('dark-mode');
-        themeToggle.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    };
-    </script>
 </body>
 </html> 

@@ -80,50 +80,67 @@ function renderChart(canvasId, label, type, data, labels) {
     const textColor = isDark ? '#fff' : '#222';
     // Set canvas background
     canvas.style.background = isDark ? '#232b3b' : '#fff';
+
+    const chartData = {
+        labels: labels,
+        datasets: [{
+            label: label,
+            data: data,
+            backgroundColor: [
+                '#1abc9c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c', '#2d3e50'
+            ],
+            borderColor: '#3498db',
+            fill: type === 'line' || type === 'bar',
+            tension: 0.4
+        }]
+    };
+    
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: (type === 'pie' || type === 'doughnut') ? 1.5 : undefined,
+        plugins: {
+            legend: {
+                display: type !== 'pie' && type !== 'doughnut' && type !== 'bar',
+                labels: { color: textColor }
+            },
+            tooltip: {
+                bodyColor: textColor,
+                titleColor: textColor,
+                backgroundColor: isDark ? '#232b3b' : '#fff',
+                borderColor: isDark ? '#fff' : '#222',
+                borderWidth: 1
+            }
+        },
+        scales: (type === 'bar' || type === 'line') ? {
+            y: {
+                beginAtZero: true,
+                ticks: { color: textColor },
+                grid: { color: isDark ? '#444' : '#e0e0e0' }
+            },
+            x: {
+                ticks: { color: textColor },
+                grid: { color: isDark ? '#444' : '#e0e0e0' }
+            }
+        } : {}
+    };
+
+    if (canvasId === 'productlines-chart') {
+        chartData.datasets[0].hoverOffset = 20;
+        chartOptions.onClick = (e) => {
+            const activePoints = charts[canvasId].getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+            if (activePoints.length > 0) {
+                const clickedIndex = activePoints[0].index;
+                const clickedLabel = charts[canvasId].data.labels[clickedIndex];
+                alert(`You clicked on: ${clickedLabel}`);
+            }
+        };
+    }
+
     charts[canvasId] = new Chart(ctx, {
         type: type,
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                backgroundColor: [
-                    '#1abc9c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c', '#2d3e50'
-                ],
-                borderColor: '#3498db',
-                fill: type === 'line' || type === 'bar',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            aspectRatio: (type === 'pie' || type === 'doughnut') ? 1.5 : undefined,
-            plugins: {
-                legend: {
-                    display: type !== 'pie' && type !== 'doughnut' && type !== 'bar',
-                    labels: { color: textColor }
-                },
-                tooltip: {
-                    bodyColor: textColor,
-                    titleColor: textColor,
-                    backgroundColor: isDark ? '#232b3b' : '#fff',
-                    borderColor: isDark ? '#fff' : '#222',
-                    borderWidth: 1
-                }
-            },
-            scales: (type === 'bar' || type === 'line') ? {
-                y: {
-                    beginAtZero: true,
-                    ticks: { color: textColor },
-                    grid: { color: isDark ? '#444' : '#e0e0e0' }
-                },
-                x: {
-                    ticks: { color: textColor },
-                    grid: { color: isDark ? '#444' : '#e0e0e0' }
-                }
-            } : {}
-        }
+        data: chartData,
+        options: chartOptions
     });
 }
 
